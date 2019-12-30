@@ -1,0 +1,46 @@
+version: "1.0"
+
+services:
+  dnsmasq:
+    build: ./dnsmasq
+    volumes:
+      - ./dnsmasq/config/dnsmasq.conf:/etc/dnsmasq.conf
+      - ./dnsmasq/log:/var/log/dnsmasq
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    links:
+      - fluentd
+
+  fluentd:
+    build: ./fluentd
+    volumes:
+      - ./fluentd/config:/fluentd/etc
+      - ./dnsmasq/log:/var/log/dnsmasq
+    links:
+      - elasticsearch
+    ports:
+      - "24224:24224"
+    depends_on:
+      - elasticsearch
+
+  elasticsearch:
+    build: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./elasticsearch/data:/usr/share/elasticsearch/data
+
+  kibana:
+    build: kibana
+    ports:
+      - "5601:5601"
+    links:
+      - elasticsearch:elasticsearch

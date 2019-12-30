@@ -1,0 +1,18 @@
+<source>
+  type tail
+  format none
+  path /var/log/dnsmasq/dnsmasq.log
+  tag dnsmasq
+  pos_file /var/log/dnsmasq/dnsmasq.log.pos
+</source>
+
+<match dnsmasq>
+  type elasticsearch
+  host elasticsearch
+  buffer_type memory
+  port 9200
+  index_name fluentd
+  type_name dnsmasq
+  logstash_format true
+  logstash_prefix dnsmasq.queries
+</match>
